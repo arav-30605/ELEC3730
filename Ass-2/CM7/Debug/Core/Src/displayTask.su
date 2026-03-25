@@ -1,0 +1,6 @@
+../Core/Src/displayTask.c:14:6:DrawStatusAnimation	8	static
+../Core/Src/displayTask.c:49:6:StartTaskdisplay	24	static
+../Core/Src/displayTask.c:83:6:MyPauseScreenUpdate	24	static
+../Core/Src/displayTask.c:131:6:MyOffScreen	16	static
+../Core/Src/displayTask.c:169:6:MyOffScreenUpdate	16	static
+../Core/Src/displayTask.c:222:6:MyOnScreenUpdate	40	static

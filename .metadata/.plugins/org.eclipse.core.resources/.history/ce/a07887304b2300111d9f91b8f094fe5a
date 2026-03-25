@@ -1,0 +1,105 @@
+#include "myMain.h"
+
+TS_State_t TSState;
+uint32_t x_pos = 0;
+uint32_t y_pos = 0;
+
+uint32_t GrindTime=10;
+uint32_t slidePos=400;
+uint32_t Touch=0;
+float GrindTimeCountDown=10;
+
+
+// Set the Debounce interval
+#define DEBOUNCE_INTERVAL 100
+
+void StartTaskTouch(void *argument)
+{
+	GrindTimeCountDown=10;
+	// Queue Setup
+	// Initialize the button and display counter
+	uint16_t buttonValue = 0;
+	uint16_t dispvalue=0;
+
+
+	for(;;)
+	{
+		// Button for start and pause
+		if ((((x_pos>330)&&(x_pos<460))&&(y_pos>30)&&(y_pos<140))&&(Touch==1)){
+			Touch=0;
+
+			if (current_state==STATE_OFF) {
+				// Send number 1 to control using queues and tasks
+				buttonValue = 1;
+				GrindTimeCountDown = GrindTime;
+			}
+			if (current_state==STATE_ON) {
+				// Send number 2 to control using queues and tasks
+				buttonValue = 2;
+			}
+			if (current_state==STATE_PAUSED) {
+				// Send number 1 to control using queues and tasks
+				buttonValue = 1;
+			}
+			osDelay(150);
+		}
+		// If it's touch within slide area and the state must be off
+		else if ((((((x_pos>=80)&&(x_pos<=780))&&(y_pos>=425))&&(Touch==1)))&&(current_state==STATE_OFF))
+		{
+			Touch=0;
+			CalculateGrindTime();
+			dispvalue = 1;
+			osStatus_t Displaystatus = osMessageQueuePut(ScreenQueueHandle, &dispvalue, 0, osWaitForever);
+			dispvalue = 0;
+
+		}
+		else
+		{
+			// No necessary touch detected so initialize the touch counter back to 0
+			Touch=0;
+		}
+		if (buttonValue != 0) {
+			osStatus_t status = osMessageQueuePut(ButtonQueueHandle, &buttonValue, 0, osWaitForever);
+			buttonValue = 0;
+		}
+		osDelay(1);
+	}
+}
+
+
+// GPIO Callback for the button (start and pause)
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	static uint32_t lastpresstime = 0;
+
+	if ((GPIO_Pin == TS_Pin)&& (uwTick - lastpresstime > DEBOUNCE_INTERVAL)) {
+		lastpresstime = uwTick;
+		Touch = 1;
+		BSP_TS_GetState(0, &TSState);
+		x_pos = TSState.TouchX;
+		y_pos = TSState.TouchY;
+		osDelay(150);
+	}
+}
+
+// Calibrate it using a linear equation
+void CalculateGrindTime (void){
+	slidePos=x_pos;
+	GrindTime = (0.015995)*(x_pos)+3.75;
+	GrindTime = round(GrindTime);
+
+	//GrindTimeCountDown = GrindTime;
+	if (GrindTime>15) {
+		GrindTime=15;
+	}
+	if (GrindTime<5) {
+		GrindTime=5;
+	}
+	if (slidePos>697){
+		slidePos=697;
+	}
+	if (slidePos<101){
+		slidePos=101;
+	}
+}
+
+

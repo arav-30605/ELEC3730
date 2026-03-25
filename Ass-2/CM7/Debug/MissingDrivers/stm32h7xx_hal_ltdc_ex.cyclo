@@ -1,0 +1,2 @@
+../MissingDrivers/stm32h7xx_hal_ltdc_ex.c:70:19:HAL_LTDCEx_StructInitFromVideoConfig	4
+../MissingDrivers/stm32h7xx_hal_ltdc_ex.c:111:19:HAL_LTDCEx_StructInitFromAdaptedCommandConfig	4

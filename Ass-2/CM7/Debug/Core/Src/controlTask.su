@@ -1,0 +1,4 @@
+../Core/Src/controlTask.c:17:6:StartControlTask	64	static,ignoring_inline_asm
+../Core/Src/controlTask.c:107:13:CopyBuffer	40	static
+../Core/Src/controlTask.c:147:13:CPU_CACHE_Enable	24	static,ignoring_inline_asm
+../Core/Src/controlTask.c:163:13:MPU_Config	24	static

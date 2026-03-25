@@ -1,0 +1,53 @@
+#ifndef SRC_MYMAIN_H_
+#define SRC_MYMAIN_H_
+
+#include "stm32h747i_discovery_ts.h"
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+#include "stm32h747i_discovery.h"
+#include "stm32h747i_discovery_lcd.h"
+#include "stm32h747i_discovery_sdram.h"
+#include "stm32_lcd.h"
+//#define LCD_FRAME_BUFFER 0xD0000000
+#include "FreeRTOS.h"
+#include "task.h"
+#include "main.h"
+#include "cmsis_os.h"
+
+#include "gpio.h"
+#include "memorymap.h"
+
+// Define the state machine
+// States needed: off, start, and paused.
+typedef enum {
+    STATE_OFF,
+    STATE_ON,
+    STATE_PAUSED
+} SystemState_t;
+
+extern volatile SystemState_t current_state;  	// Global variable to call from any file
+
+extern uint32_t slidePos;						// Current Slide bar position
+
+extern uint32_t GrindTime;						// Grind Time set
+extern float GrindTimeCountDown;				// Grind Time remaining
+extern float PauseTimeCount;					// Time in pause state
+extern float percent;
+
+// Queue Handles defined in the ioc file
+extern osMessageQueueId_t ButtonQueueHandle;
+extern osMessageQueueId_t GrindQueueHandle;
+extern osMessageQueueId_t ScreenQueueHandle;
+
+// Software Timer Handle
+extern osTimerId_t GrindTimerHandle;
+
+// DAC
+extern DAC_HandleTypeDef hdac1;
+extern DMA_HandleTypeDef hdma_dac1_ch1;
+
+//Hardware Timer
+extern TIM_HandleTypeDef htim2;
+
+#endif /* SRC_MYMAIN_H_ */

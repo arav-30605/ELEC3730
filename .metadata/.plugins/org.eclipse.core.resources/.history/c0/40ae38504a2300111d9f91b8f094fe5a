@@ -1,0 +1,50 @@
+#include "myMain.h"
+
+uint16_t buttonValue=0;
+float PauseTimeCount=0;
+
+// Queue for Update Screen, initialize it first
+uint16_t dispvalue = 0;
+
+void StartTimeCounter(void *argument)
+{
+	//Get Grind Queue From initial state change
+	uint8_t GrindreceivedValue;
+	osStatus_t Grindstatus;
+
+	for(;;)
+	{
+		// Lookup at Queue
+		Grindstatus = osMessageQueueGet(GrindQueueHandle, &GrindreceivedValue, NULL, osWaitForever);
+
+		if ((Grindstatus == osOK)&&(current_state==STATE_ON)) {
+			// Send message to Display
+			dispvalue = 1;
+			osStatus_t Displaystatus = osMessageQueuePut(ScreenQueueHandle, &dispvalue, 0, osWaitForever);
+
+			osTimerStart (GrindTimerHandle, 100);		// Start Timer with 0.1sec overflow
+		}
+
+		osDelay(1);
+	}
+}
+
+void GrindCallback(void * argument) {
+
+	dispvalue = 1;
+	osStatus_t Displaystatus = osMessageQueuePut(ScreenQueueHandle, &dispvalue, 0, osWaitForever);
+
+	if (current_state==STATE_PAUSED) {
+		PauseTimeCount=PauseTimeCount+0.1;
+		dispvalue = 4;  // PAUSE screen update
+		osMessageQueuePut(ScreenQueueHandle, &dispvalue, 0, osWaitForever);
+	}
+	if (current_state==STATE_ON) {
+		GrindTimeCountDown=GrindTimeCountDown-0.1;
+	}
+	if ((GrindTimeCountDown<=0)||(PauseTimeCount>=20)){
+		osTimerStop(GrindTimerHandle);						// Stop Timer
+		buttonValue = 3;									// Send 3 to Start/Stop Queue
+		osStatus_t status = osMessageQueuePut(ButtonQueueHandle, &buttonValue, 0, osWaitForever);
+	}
+}

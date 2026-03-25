@@ -1,0 +1,4 @@
+../Core/Src/Ass-1B-Q2.c:45:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/Ass-1B-Q2.c:55:6:HAL_GPIO_EXTI_Callback	16	static
+../Core/Src/Ass-1B-Q2.c:66:6:HAL_ADC_ConvCpltCallback	16	static
+../Core/Src/Ass-1B-Q2.c:70:6:Ass_1B_main	24	static

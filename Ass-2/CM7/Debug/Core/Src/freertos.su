@@ -1,0 +1,7 @@
+../Core/Src/freertos.c:125:6:MX_FREERTOS_Init	8	static
+../Core/Src/freertos.c:193:13:StartDefaultTask	16	static
+../Core/Src/freertos.c:211:13:StartControlTask	16	static
+../Core/Src/freertos.c:229:13:StartTaskdisplay	16	static
+../Core/Src/freertos.c:247:13:StartTaskTouch	16	static
+../Core/Src/freertos.c:265:13:StartTimeCounter	16	static
+../Core/Src/freertos.c:277:13:GrindCallback	16	static

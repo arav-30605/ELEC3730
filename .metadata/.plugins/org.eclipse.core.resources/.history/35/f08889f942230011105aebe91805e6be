@@ -1,0 +1,288 @@
+#include "myMain.h"
+
+uint32_t percentInt;
+float percent;
+float GrindTimeFloat;
+float GrindTimeCountDownFloat;
+
+uint32_t widthfill;
+
+void StartTaskdisplay(void *argument)
+{
+	// Start with OFF screen
+	MyOffScreen();
+
+	// Queue Setup
+	// Recieve Display Queue
+	uint16_t ScreenStateChange;
+	osStatus_t ScreenStatus;
+
+	for(;;)
+	{
+		ScreenStatus = osMessageQueueGet(ScreenQueueHandle, &ScreenStateChange, NULL, osWaitForever);
+		if (ScreenStatus==osOK){
+			if ((ScreenStateChange==1)&&(current_state==STATE_OFF)) {
+				MyOffScreenUpdate();
+			}
+			if ((ScreenStateChange==1)&&(current_state==STATE_ON)) {
+				MyOnScreenUpdate();
+			}
+			if ((ScreenStateChange==3)&&(current_state==STATE_OFF)){
+				MyOffScreen();
+				MyOffScreenUpdate();
+			}
+			if ((ScreenStateChange==4)&&(current_state==STATE_PAUSED)){
+				//Fill with blue if in paused state
+				MyPauseScreenUpdate();
+			}
+		}
+		osDelay(1);
+	}
+}
+
+void MyPauseScreenUpdate(void) {
+	// PAUSE timeout: 20.0 - elapsed → integer seconds
+	float pauseRemainingFloat = 20.0f - PauseTimeCount;
+	uint32_t pauseSeconds = (uint32_t)roundf(pauseRemainingFloat);
+
+	// Main bar: frozen blue (your current)
+	UTIL_LCD_FillRect(101,411,widthfill,58,UTIL_LCD_COLOR_BLUE);
+
+	// NEW: PAUSE label + countdown (y=150–200 area)
+	UTIL_LCD_SetFont(&Font16);
+	UTIL_LCD_DisplayStringAt(0,150,(uint32_t*)"Pause Timeout:",CENTER_MODE);  // y=150
+
+	// NEW: Square box around countdown (positioned e.g. x=370,y=170, matching grind timer style)
+	UTIL_LCD_DrawRect(370,170,60,60,UTIL_LCD_COLOR_WHITE);  // outline
+
+	// FIXED: Countdown with static string buffers (like your other switches)
+	UTIL_LCD_SetFont(&Font24);
+	switch(pauseSeconds) {
+	case 20: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"20",CENTER_MODE); break;
+	case 19: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"19",CENTER_MODE); break;
+	case 18: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"18",CENTER_MODE); break;
+	case 17: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"17",CENTER_MODE); break;
+	case 16: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"16",CENTER_MODE); break;
+	case 15: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"15",CENTER_MODE); break;
+	case 14: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"14",CENTER_MODE); break;
+	case 13: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"13",CENTER_MODE); break;
+	case 12: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"12",CENTER_MODE); break;
+	case 11: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"11",CENTER_MODE); break;
+	case 10: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"10",CENTER_MODE); break;
+	case  9: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 9 ",CENTER_MODE); break;
+	case  8: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 8 ",CENTER_MODE); break;
+	case  7: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 7 ",CENTER_MODE); break;
+	case  6: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 6 ",CENTER_MODE); break;
+	case  5: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 5 ",CENTER_MODE); break;
+	case  4: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 4 ",CENTER_MODE); break;
+	case  3: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 3 ",CENTER_MODE); break;
+	case  2: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 2 ",CENTER_MODE); break;
+	case  1: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 1 ",CENTER_MODE); break;
+	case  0: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)" 0 ",CENTER_MODE); break;
+	default: UTIL_LCD_DisplayStringAt(0,190,(uint32_t*)"ERR",CENTER_MODE); break;
+	}
+
+	UTIL_LCD_SetFont(&Font24);
+	UTIL_LCD_DisplayStringAt(0,90,(uint32_t*)"START",CENTER_MODE);  // button
+}
+
+void MyOffScreen (void){
+	PauseTimeCount = 0.0f;
+	UTIL_LCD_Clear(UTIL_LCD_COLOR_BLACK);
+	UTIL_LCD_SetFont(&Font16);
+	UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_SetBackColor(UTIL_LCD_COLOR_BLACK);
+	// Bottom bar
+	// Indicator
+	UTIL_LCD_FillRect(398,420,4,40,UTIL_LCD_COLOR_WHITE);
+	//Line
+	UTIL_LCD_DrawHLine(100,439,600,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawHLine(100,440,600,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(100,410,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(99,410,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(700,410,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(701,410,60,UTIL_LCD_COLOR_WHITE);
+	// Bottom bar labels
+	UTIL_LCD_DisplayStringAt(20,430,(uint32_t*)"5 Sec",LEFT_MODE);
+	UTIL_LCD_DisplayStringAt(720,430, (uint32_t*)"15 Sec",LEFT_MODE);
+
+	// Square readout
+	UTIL_LCD_DrawRect(370,300,60,60,UTIL_LCD_COLOR_WHITE);
+	// Label Text
+	UTIL_LCD_DisplayStringAt(0,265,(uint32_t*)"Selected",CENTER_MODE);
+	UTIL_LCD_DisplayStringAt(0,280,(uint32_t*)"Grind Time (Sec)",CENTER_MODE);
+	//
+	UTIL_LCD_SetFont(&Font24);
+	UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "10" ,CENTER_MODE);
+	// Square button
+	UTIL_LCD_DrawRect(350,70,100,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawRect(350,70,101,61,UTIL_LCD_COLOR_WHITE);
+
+	// Button Label
+	UTIL_LCD_DisplayStringAt(0,90,(uint32_t*)"START",CENTER_MODE);
+}
+
+void MyOffScreenUpdate(void){
+	// Update Number
+	UTIL_LCD_SetFont(&Font24);
+	switch(GrindTime){
+	case 5:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 5 " ,CENTER_MODE);
+		break;
+	case 6:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 6 " ,CENTER_MODE);
+		break;
+	case 7:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 7 " ,CENTER_MODE);
+		break;
+	case 8:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 8 " ,CENTER_MODE);
+		break;
+	case 9:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 9 " ,CENTER_MODE);
+		break;
+	case 10:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "10" ,CENTER_MODE);
+		break;
+	case 11:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "11" ,CENTER_MODE);
+		break;
+	case 12:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "12" ,CENTER_MODE);
+		break;
+	case 13:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "13" ,CENTER_MODE);
+		break;
+	case 14:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "14" ,CENTER_MODE);
+		break;
+	case 15:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "15" ,CENTER_MODE);
+	}
+	// Bottom bar
+	// Indicator
+	UTIL_LCD_FillRect(0,420,800,40,UTIL_LCD_COLOR_BLACK);
+
+	UTIL_LCD_FillRect(slidePos,420,4,40,UTIL_LCD_COLOR_WHITE);
+	//Line
+	UTIL_LCD_DrawHLine(100,439,600,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawHLine(100,440,600,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(100,410,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(99,410,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(700,410,60,UTIL_LCD_COLOR_WHITE);
+	UTIL_LCD_DrawVLine(701,410,60,UTIL_LCD_COLOR_WHITE);
+	// Bottom bar labels
+	UTIL_LCD_SetFont(&Font16);
+	UTIL_LCD_DisplayStringAt(20,430,(uint32_t*)"5 Sec",LEFT_MODE);
+	UTIL_LCD_DisplayStringAt(720,430, (uint32_t*)"15 Sec",LEFT_MODE);
+}
+
+void MyOnScreenUpdate (void){
+	// CLEAR PAUSE TIMER AREA (when resuming)
+	    UTIL_LCD_FillRect(0,140,800,120,UTIL_LCD_COLOR_BLACK);
+	// Calculate % grind remaining
+	GrindTimeCountDownFloat=GrindTimeCountDown;
+	GrindTimeFloat=GrindTime;
+	percent = (GrindTimeCountDownFloat/GrindTimeFloat)*100;
+	percentInt=round(percent);
+
+	widthfill=(5.99)*percentInt; //(599-0)
+
+	// Choose colour: 100–51% green, 50–21% yellow, 20–0% red
+	uint8_t r, g, b;
+	float p = percent;   // use float for smoothness
+
+	if (p > 100.0f) p = 100.0f;
+	if (p < 0.0f)   p = 0.0f;
+
+	// Smooth gradient
+	// Each RGB channel has 0-255 (FF) values, so I can play with it to get a transition.
+	if (p > 50.0f) {
+	    // Green to Yellow
+		// In this part green stays the same, but red needs to change from 0 to 255.
+	    r = (uint8_t)(255.0f * (100.0f - p) / 50.0f);  // 0 → 255
+	    g = 255;
+	} else {
+	    // Yellow to Red
+		// In this part red stays the same, but green needs to change from 0 to 255.
+	    r = 255;
+	    g = (uint8_t)(255.0f * p / 50.0f);             // 255 → 0
+	}
+
+	b = 0;
+
+	// inserting the function back to the 32 bit value.
+	// from green to yellow to red, the blue is unaffected so it stays 0.
+	// same remains for the alpha channel as well.
+	uint32_t barColour = (0xFF << 24) | (r << 16) | (g << 8) | b;
+
+	UTIL_LCD_SetFont(&Font16);
+	UTIL_LCD_DisplayStringAt(0,280,(uint32_t*)"Remaining   Time",CENTER_MODE);
+
+
+	//Progress bar inside
+	if (current_state==STATE_ON){
+		UTIL_LCD_FillRect(101,411,599,59,UTIL_LCD_COLOR_BLACK); //clear box
+		UTIL_LCD_FillRect(101,411,widthfill,59,barColour); //Fill with green
+		UTIL_LCD_SetFont(&Font24);
+		UTIL_LCD_DisplayStringAt(0,90,(uint32_t*)"PAUSE",CENTER_MODE);
+	}
+
+	// Bottom box
+	UTIL_LCD_DrawRect(100,410,600,60,UTIL_LCD_COLOR_WHITE);
+
+	// Text in output box
+	UTIL_LCD_SetFont(&Font24);
+
+	UTIL_LCD_DrawRect(100,410,600,60,UTIL_LCD_COLOR_WHITE);
+	switch((int)GrindTimeCountDown){
+	case 0:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 0 " ,CENTER_MODE);
+		break;
+	case 1:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 1 " ,CENTER_MODE);
+		break;
+	case 2:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 2 " ,CENTER_MODE);
+		break;
+	case 3:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 3 " ,CENTER_MODE);
+		break;
+	case 4:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 4 " ,CENTER_MODE);
+		break;
+	case 5:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 5 " ,CENTER_MODE);
+		break;
+	case 6:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 6 " ,CENTER_MODE);
+		break;
+	case 7:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 7 " ,CENTER_MODE);
+		break;
+	case 8:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 8 " ,CENTER_MODE);
+		break;
+	case 9:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) " 9 " ,CENTER_MODE);
+		break;
+	case 10:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "10" ,CENTER_MODE);
+		break;
+	case 11:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "11" ,CENTER_MODE);
+		break;
+	case 12:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "12" ,CENTER_MODE);
+		break;
+	case 13:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "13" ,CENTER_MODE);
+		break;
+	case 14:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "14" ,CENTER_MODE);
+		break;
+	case 15:
+		UTIL_LCD_DisplayStringAt(0,320,(uint32_t*) "15" ,CENTER_MODE);
+	}
+}
+

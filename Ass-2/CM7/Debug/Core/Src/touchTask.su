@@ -1,0 +1,3 @@
+../Core/Src/touchTask.c:17:6:StartTaskTouch	32	static
+../Core/Src/touchTask.c:72:6:HAL_GPIO_EXTI_Callback	16	static
+../Core/Src/touchTask.c:86:6:CalculateGrindTime	4	static

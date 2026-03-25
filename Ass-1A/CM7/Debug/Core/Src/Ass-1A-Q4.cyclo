@@ -1,0 +1,4 @@
+../Core/Src/Ass-1A-Q4.c:29:6:HAL_GPIO_EXTI_Callback	1
+../Core/Src/Ass-1A-Q4.c:34:6:HAL_ADC_ConvCpltCallback	1
+../Core/Src/Ass-1A-Q4.c:37:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/Ass-1A-Q4.c:45:6:Ass_1A_main	17

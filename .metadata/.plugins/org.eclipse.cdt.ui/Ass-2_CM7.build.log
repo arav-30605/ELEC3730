@@ -1,0 +1,10 @@
+15:55:52 **** Incremental Build of configuration Debug for project Ass-2_CM7 ****
+make -j12 all 
+arm-none-eabi-size  Ass-2_CM7.elf 
+   text	   data	    bss	    dec	    hex	filename
+  96264	    368	  25072	 121704	  1db68	Ass-2_CM7.elf
+Finished building: default.size.stdout
+ 
+
+15:55:54 Build Finished. 0 errors, 0 warnings. (took 1s.445ms)
+
